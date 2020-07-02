@@ -1,0 +1,1 @@
+https://stas.loblaw.ca/lcl-employeeschedule-services/api/rest/v1/services/en/employeeschedules/(badge id)
