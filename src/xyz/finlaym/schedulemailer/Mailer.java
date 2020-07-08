@@ -53,6 +53,7 @@ public class Mailer {
 					}
 					Message msg = new MimeMessage(session);
 					msg.setFrom(new InternetAddress("no-reply@finlaym.xyz"));
+					System.out.println("Sending email to "+split[1]);
 					msg.setRecipient(Message.RecipientType.TO, new InternetAddress(split[1]));
 					msg.setSubject("Schedule:");
 
@@ -77,6 +78,7 @@ public class Mailer {
 					t.connect();
 					t.sendMessage(msg, msg.getAllRecipients());
 					t.close();
+					lastUpdated.put(split[0],schedule.getPublishTimestamp());
 				}
 			}
 
