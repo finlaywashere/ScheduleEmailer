@@ -18,7 +18,13 @@ public class Schedule {
 	
 	public Schedule(String json) throws Exception{
 		JSONParser parser = new JSONParser();
-		JSONObject obj = (JSONObject) parser.parse(json);
+		JSONObject obj;
+		try {
+			obj = (JSONObject) parser.parse(json);
+		}catch(Exception e) {
+			System.err.println(json);
+			throw new Exception(e);
+		}
 		this.publishTimestamp = Shift.format.parse((String) obj.get("publishTimeStamp"));
 		this.firstName = (String) obj.get("firstName");
 		this.lastName = (String) obj.get("lastName");
