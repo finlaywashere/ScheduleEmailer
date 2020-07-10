@@ -61,8 +61,10 @@ public class Mailer {
 
 							String message = schedule.getFirstName() + " " + schedule.getLastName()
 									+ ", your new schedule is ready!\n\n";
+							int weekCount = 0;
 							for (Week w : schedule.getWeeks()) {
 								if (w.getShifts().length != 0) {
+									weekCount++;
 									message += "Week: " + dateformat.format(w.getStart()) + " - "
 											+ dateformat.format(w.getEnd()) + ":\n";
 									message += "Hours: " + w.getTotalHours() + "\n\n";
@@ -76,6 +78,10 @@ public class Mailer {
 										message += "Position: " + position + "\n";
 									}
 								}
+							}
+							if(weekCount == 0) {
+								System.err.println("Badge has no scheduled shifts, skipping");
+								continue;
 							}
 							msg.setText(message);
 							SMTPTransport t = (SMTPTransport) session.getTransport("smtp");
