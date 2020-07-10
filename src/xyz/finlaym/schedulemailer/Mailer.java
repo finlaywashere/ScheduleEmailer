@@ -26,6 +26,7 @@ public class Mailer {
 	private static Map<String, Date> lastUpdated = new HashMap<String, Date>();
 	private static SimpleDateFormat format = new SimpleDateFormat("dd/MM/yyyy kk:mm");
 	private static SimpleDateFormat dateformat = new SimpleDateFormat("dd/MM/yyyy");
+	private static File MESSAGE_FILE = new File("message.format");
 
 	public static void main(String[] args) throws Exception {
 		List<String> ids = new ArrayList<String>();
@@ -37,6 +38,13 @@ public class Mailer {
 			ids.add(s);
 		}
 		in.close();
+		in = new Scanner(MESSAGE_FILE);
+		String messageFormat = "";
+		while (in.hasNextLine()) {
+			messageFormat += in.nextLine() + "\n";
+		}
+		in.close();
+		String[] formatSplit = messageFormat.split("\n");
 		Properties prop = System.getProperties();
 		prop.put("mail.smth.host", "localhost");
 		prop.put("mail.smtp.port", "25");
@@ -58,25 +66,47 @@ public class Mailer {
 							System.out.println("Sending email to " + split[1]);
 							msg.setRecipient(Message.RecipientType.TO, new InternetAddress(split[1]));
 							msg.setSubject("Schedule:");
+							String message = "";
+							String firstName = schedule.getFirstName().substring(0, 1).toUpperCase()
+									+ schedule.getFirstName().substring(1).toLowerCase();
+							String lastName = schedule.getLastName().substring(0, 1).toUpperCase()
+									+ schedule.getLastName().substring(1).toLowerCase();
 
-							String message = schedule.getFirstName() + " " + schedule.getLastName()
-									+ ", your new schedule is ready!\n\n";
-							for (Week w : schedule.getWeeks()) {
-								if (w.getShifts().length != 0) {
-									message += "Week: " + dateformat.format(w.getStart()) + " - "
-											+ dateformat.format(w.getEnd()) + ":\n";
-									message += "Hours: " + w.getTotalHours() + "\n\n";
-									for (Shift shift : w.getShifts()) {
-										String start = format.format(shift.getStart());
-										String end = format.format(shift.getEnd());
-										String position = shift.getPosition();
-										double hours = shift.getNetHours();
-										message += "Shift: " + start + " - " + end + "\n";
-										message += "Net Hours: " + hours + "\n";
-										message += "Position: " + position + "\n";
+							for (int i = 0; i < formatSplit.length; i++) {
+								String formatStr = formatSplit[i];
+								formatStr = formatStr.replaceAll("\\%F", firstName);
+								formatStr = formatStr.replaceAll("\\%L", lastName);
+
+								if (formatStr.contains("%W")) {
+									for (Week w : schedule.getWeeks()) {
+										if (w.getShifts().length != 0) {
+											formatStr = formatStr.replaceAll("%WS", dateformat.format(w.getStart()));
+											formatStr = formatStr.replaceAll("%WE", dateformat.format(w.getEnd()));
+											formatStr = formatStr.replaceAll("%WH", "" + w.getTotalHours());
+											message += formatStr;
+											for (Shift shift : w.getShifts()) {
+												for (int i1 = i + 1; i1 < formatSplit.length; i1++) {
+													String formatStr2 = formatSplit[i1];
+													formatStr2 = formatStr2.replaceAll("\\%F", firstName);
+													formatStr2 = formatStr2.replaceAll("\\%L", lastName);
+													if (formatStr2.contains("%S")) {
+														formatStr2 = formatStr2.replaceAll("%SS",format.format(shift.getStart()));
+														formatStr2 = formatStr2.replaceAll("%SE",format.format(shift.getEnd()));
+														formatStr2 = formatStr2.replaceAll("%SH", "" + shift.getNetHours());
+														message += formatStr2;
+													}
+													if(formatStr2.contains("%E")) {
+														break;
+													}
+												}
+											}
+										}
 									}
+								}else {
+									message += formatStr;
 								}
 							}
+							System.out.println();
 							msg.setText(message);
 							SMTPTransport t = (SMTPTransport) session.getTransport("smtp");
 							t.connect();

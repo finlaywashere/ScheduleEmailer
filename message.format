@@ -1,0 +1,9 @@
+%F %L, your new schedule is ready!
+
+Week: %WS - %WE
+Total hours: %WH
+
+Shift: %SS - %SE
+Hours: %SH
+
+%E
