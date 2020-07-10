@@ -42,47 +42,59 @@ public class Mailer {
 		prop.put("mail.smtp.port", "25");
 		Session session = Session.getInstance(prop, null);
 		while (true) {
-			for (String s : ids) {
-				String[] split = s.split(":", 2);
-				Schedule schedule = ScheduleAPI.getSchedule(split[0]);
-				if (lastUpdated.get(split[0]) == null
-						|| !schedule.getPublishTimestamp().equals(lastUpdated.get(split[0]))) {
-					if (schedule == null) {
-						System.err.println("Error: Failed to get schedule for badge id " + split[0]);
-						continue;
-					}
-					Message msg = new MimeMessage(session);
-					msg.setFrom(new InternetAddress("no-reply@finlaym.xyz"));
-					System.out.println("Sending email to "+split[1]);
-					msg.setRecipient(Message.RecipientType.TO, new InternetAddress(split[1]));
-					msg.setSubject("Schedule:");
-
-					String message = schedule.getFirstName()+" "+schedule.getLastName()+", your new schedule is ready!\n\n";
-					for (Week w : schedule.getWeeks()) {
-						if (w.getShifts().length != 0) {
-							message += "Week: "+dateformat.format(w.getStart())+" - "+dateformat.format(w.getEnd())+":\n";
-							message += "Hours: "+w.getTotalHours()+"\n\n";
-							for (Shift shift : w.getShifts()) {
-								String start = format.format(shift.getStart());
-								String end = format.format(shift.getEnd());
-								String position = shift.getPosition();
-								double hours = shift.getNetHours();
-								message += "Shift: "+start+" - "+end+"\n";
-								message += "Net Hours: "+hours+"\n";
-								message += "Position: "+position+"\n";
+			try {
+				for (String s : ids) {
+					try {
+						String[] split = s.split(":", 2);
+						Schedule schedule = ScheduleAPI.getSchedule(split[0]);
+						if (lastUpdated.get(split[0]) == null
+								|| !schedule.getPublishTimestamp().equals(lastUpdated.get(split[0]))) {
+							if (schedule == null) {
+								System.err.println("Error: Failed to get schedule for badge id " + split[0]);
+								continue;
 							}
-						}
-					}
-					msg.setText(message);
-					SMTPTransport t = (SMTPTransport) session.getTransport("smtp");
-					t.connect();
-					t.sendMessage(msg, msg.getAllRecipients());
-					t.close();
-					lastUpdated.put(split[0],schedule.getPublishTimestamp());
-				}
-			}
+							Message msg = new MimeMessage(session);
+							msg.setFrom(new InternetAddress("no-reply@finlaym.xyz"));
+							System.out.println("Sending email to " + split[1]);
+							msg.setRecipient(Message.RecipientType.TO, new InternetAddress(split[1]));
+							msg.setSubject("Schedule:");
 
-			Thread.sleep(1000 * 60 * 60 * 4);
+							String message = schedule.getFirstName() + " " + schedule.getLastName()
+									+ ", your new schedule is ready!\n\n";
+							for (Week w : schedule.getWeeks()) {
+								if (w.getShifts().length != 0) {
+									message += "Week: " + dateformat.format(w.getStart()) + " - "
+											+ dateformat.format(w.getEnd()) + ":\n";
+									message += "Hours: " + w.getTotalHours() + "\n\n";
+									for (Shift shift : w.getShifts()) {
+										String start = format.format(shift.getStart());
+										String end = format.format(shift.getEnd());
+										String position = shift.getPosition();
+										double hours = shift.getNetHours();
+										message += "Shift: " + start + " - " + end + "\n";
+										message += "Net Hours: " + hours + "\n";
+										message += "Position: " + position + "\n";
+									}
+								}
+							}
+							msg.setText(message);
+							SMTPTransport t = (SMTPTransport) session.getTransport("smtp");
+							t.connect();
+							t.sendMessage(msg, msg.getAllRecipients());
+							t.close();
+							lastUpdated.put(split[0], schedule.getPublishTimestamp());
+						}
+					} catch (Exception e) {
+						e.printStackTrace();
+						System.err.println("Error in sending email");
+					}
+				}
+
+				Thread.sleep(1000 * 60 * 60 * 4);
+			} catch (Exception e) {
+				e.printStackTrace();
+				System.err.println("Error in sending emails");
+			}
 		}
 	}
 }
