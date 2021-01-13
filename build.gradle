@@ -23,6 +23,8 @@ repositories {
 dependencies {
     compile group: 'com.googlecode.json-simple', name: 'json-simple', version: '1.1.1'
     compile group: 'com.sun.mail', name: 'javax.mail', version: '1.6.2'
+    compile group: 'mysql', name: 'mysql-connector-java', version: '8.0.15'
+    runtime "mysql:mysql-connector-java:8.0.15"
 }
 
 application {
