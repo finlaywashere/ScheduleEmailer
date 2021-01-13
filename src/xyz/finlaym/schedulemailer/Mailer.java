@@ -78,7 +78,6 @@ public class Mailer {
 								System.err.println("Badge has no scheduled shifts, skipping");
 								continue;
 							}
-							System.out.println(message);
 							msg.setText(message);
 							SMTPTransport t = (SMTPTransport) session.getTransport("smtp");
 							t.connect();
