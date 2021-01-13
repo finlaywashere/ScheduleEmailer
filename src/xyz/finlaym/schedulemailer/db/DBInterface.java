@@ -1,9 +1,10 @@
 package xyz.finlaym.schedulemailer.db;
 
 import java.sql.Connection;
+import java.sql.Date;
 import java.sql.DriverManager;
+import java.sql.PreparedStatement;
 import java.sql.ResultSet;
-import java.sql.Statement;
 import java.util.ArrayList;
 
 public class DBInterface {
@@ -18,8 +19,8 @@ public class DBInterface {
 		}
 	}
 	public ArrayList<String[]> getIDPairs() throws Exception{
-		Statement statement = conn.createStatement();
-		ResultSet rs = statement.executeQuery("SELECT * FROM `id_pairs`;");
+		PreparedStatement statement = conn.prepareStatement("SELECT * FROM `id_pairs`;");
+		ResultSet rs = statement.executeQuery();
 		ArrayList<String[]> idPairs = new ArrayList<String[]>();
 		while(rs.next()) {
 			String id = rs.getString("id");
@@ -29,5 +30,31 @@ public class DBInterface {
 		}
 		rs.close();
 		return idPairs;
+	}
+	public java.util.Date getLastUpdated(String id) throws Exception{
+		PreparedStatement statement = conn.prepareStatement("SELECT * FROM `id_updated` WHERE `id` = ?;");
+		statement.setString(1, id);
+		ResultSet rs = statement.executeQuery();
+		rs.next();
+		java.util.Date d = rs.getDate("date");
+		return d;
+	}
+	public void setLastUpdated(String id, java.util.Date date) throws Exception{
+		Date sqlDate = new Date(date.getTime());
+		PreparedStatement statement = conn.prepareStatement("SELECT * FROM `id_updated` WHERE `id` = ?;");
+		statement.setString(1, id);
+		ResultSet rs = statement.executeQuery();
+		rs.last();
+		if(rs.getRow() == 0) {
+			PreparedStatement pS = conn.prepareStatement("INSERT INTO `id_updated` (`id`, `date`) VALUES(?,?);");
+			pS.setString(1, id);
+			pS.setDate(2, sqlDate);
+			pS.executeUpdate();
+		}else {
+			PreparedStatement pS = conn.prepareStatement("UPDATE `id_updated` SET `date` = ? WHERE `id` = ?;");
+			pS.setString(2, id);
+			pS.setDate(1, sqlDate);
+			pS.executeUpdate();
+		}
 	}
 }

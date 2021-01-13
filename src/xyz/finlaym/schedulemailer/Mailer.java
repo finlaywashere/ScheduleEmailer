@@ -3,8 +3,6 @@ package xyz.finlaym.schedulemailer;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Date;
-import java.util.HashMap;
-import java.util.Map;
 import java.util.Properties;
 
 import javax.mail.Message;
@@ -21,7 +19,7 @@ import xyz.finlaym.schedulemailer.rest.Shift;
 import xyz.finlaym.schedulemailer.rest.Week;
 
 public class Mailer {
-	private static Map<String, Date> lastUpdated = new HashMap<String, Date>();
+	
 	private static SimpleDateFormat format = new SimpleDateFormat("E (dd/MM/yyyy)");
 	private static SimpleDateFormat timeFormat = new SimpleDateFormat("hh:mm a");
 	private static SimpleDateFormat dateformat = new SimpleDateFormat("dd/MM/yyyy");
@@ -39,8 +37,9 @@ public class Mailer {
 				for (String[] split : ids) {
 					try {
 						Schedule schedule = ScheduleAPI.getSchedule(split[0]);
-						if (lastUpdated.get(split[0]) == null
-								|| !schedule.getPublishTimestamp().equals(lastUpdated.get(split[0]))) {
+						Date lastUpdated = dbInt.getLastUpdated(split[0]);
+						if (lastUpdated == null
+								|| !schedule.getPublishTimestamp().equals(lastUpdated)) {
 							if (schedule == null) {
 								System.err.println("Error: Failed to get schedule for badge id " + split[0]);
 								continue;
@@ -80,11 +79,12 @@ public class Mailer {
 							}
 							message += "\nDisclaimer: I don't guarantee this information is accurate, its pulled from the online schedule. I am not responsible for any missed shifts";
 							msg.setText(message);
+
+							dbInt.setLastUpdated(split[0], schedule.getPublishTimestamp());
 							SMTPTransport t = (SMTPTransport) session.getTransport("smtp");
 							t.connect();
 							t.sendMessage(msg, msg.getAllRecipients());
 							t.close();
-							lastUpdated.put(split[0], schedule.getPublishTimestamp());
 						}
 					} catch (Exception e) {
 						e.printStackTrace();
