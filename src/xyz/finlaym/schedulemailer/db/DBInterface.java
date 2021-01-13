@@ -35,7 +35,8 @@ public class DBInterface {
 		PreparedStatement statement = conn.prepareStatement("SELECT * FROM `id_updated` WHERE `id` = ?;");
 		statement.setString(1, id);
 		ResultSet rs = statement.executeQuery();
-		rs.next();
+		if(!rs.next())
+			return null;
 		java.util.Date d = rs.getDate("date");
 		return d;
 	}
