@@ -79,6 +79,8 @@ public class Mailer {
 							}
 							message += "\nDisclaimer: I don't guarantee this information is accurate, its pulled from the online schedule. I am not responsible for any missed shifts";
 							msg.setText(message);
+							msg.setHeader("List-Unsubscribe-Post", "List-Unsubscribe=One-Click");
+							msg.setHeader("List-Unsubscribe", "https://finlaym.xyz/unsubscibe/"+split[1]);
 
 							dbInt.setLastUpdated(split[0], schedule.getPublishTimestamp());
 							SMTPTransport t = (SMTPTransport) session.getTransport("smtp");
